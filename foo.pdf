@@ -1,0 +1,11 @@
+/* Main application entry file. Please note, the order of loading is important.
+ * Configuration loading and booting of controllers and custom error handlers */
+
+var http = require('http-get')  ; 
+http.get('http://localhost/foo.pdf'  ,  '/path/to/foo.pdf' , function(err , result){
+	if (err) {
+		console.error(err);
+	}else{
+		console.log('File downloaded at ' + result.file);
+	}
+})
