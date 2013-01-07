@@ -1,7 +1,6 @@
-var weiboUser = module.exports = function weiboUser(screen_name, uid, count, commentsArray){
+var weiboUser = module.exports = function weiboUser(user, count, commentsArray){
 
-	this.screen_name = screen_name;
-    this.uid = uid;
+	this.user = user;
     this.count = count;
     this.commentsArray = commentsArray;
 

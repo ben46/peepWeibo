@@ -23,6 +23,27 @@ function getWeiboByScreenName(screen_name, callback){
   });
 }
 
+function getUserTimeline_IdsById(uid, count, callback){
+  count = (count < 10 ? 10 : count);
+  var reqUrl = '/statuses/user_timeline/ids.json?uid=' + uid + '&count=' + count;
+  getWeiboMethod( reqUrl, function(error, response) {
+      if (error) {
+        console.log('requestWeibo', error);
+        return;
+      }
+      response.setEncoding('utf8');
+      var chunkData = '';
+      response.on('data', function (chunk) {
+          chunkData+=chunk;
+      });
+      response.on('end', function () {
+        console.log('end');
+        var data = JSON.parse(chunkData);
+        callback(data);
+      });
+  });
+}
+
 function friends_ids(uid){
   var requrl = '/friendships/friends/ids.json?uid=' + uid ;
   getWeiboMethod( requrl, function(error, response) {
