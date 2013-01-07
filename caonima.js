@@ -7,6 +7,7 @@ URL = require('url'),
 path = require('path'),
 fs = require('fs');
 
+var commentSchema = require('./commentSchema');
 var targetUID = 1804832854;
 // var targetUID = 1769461117;
 // var targetUID = 1304252912; // vivi cola
@@ -186,16 +187,17 @@ function printActivePerson(){
 
     console.log(weiboUsers[j].screen_name + ", " + weiboUsers[j].count);
     for(var i  = 0 ; i < weiboUsers[j].commentsArray.length ;  i++){
-      console.log('    ' + weiboUsers[j].commentsArray[i]  );
+      console.log('    ' + weiboUsers[j].commentsArray[i].commentText + '  ' + weiboUsers[j].commentsArray[i].created_at   );
     }
     for(var i  = 0 ; i < owner.commentsArray.length ;  i++){
-      var searchIndex = owner.commentsArray[i].search(weiboUsers[j].screen_name);
+      var searchIndex = owner.commentsArray[i].commentText.search(weiboUsers[j].screen_name);
       if(searchIndex != -1){
-        console.log(searchIndex + '----' + owner.commentsArray[i]  );
+        console.log( owner.screen_name + owner.commentsArray[i].commentText + '  ' + owner.commentsArray[i].created_at   );
+
       }
     };
     // console.log(weiboUsers[j].uid);
-    getTheirConversation(weiboUsers[j].uid);
+    // getTheirConversation(weiboUsers[j].uid);
 
   }
 }
@@ -223,7 +225,8 @@ function getAtPerson(uid, callback){
       });
   });
 }
-
+// 处理一条微博的所有评论数据
+// 把这些数据全部放进博主的comments array
 var pushWeiboUsersCalledCount = 0;
 function pushWeiboUsers(data, index, totalStatusNumber, callback){
   pushWeiboUsersCalledCount++
@@ -235,14 +238,18 @@ function pushWeiboUsers(data, index, totalStatusNumber, callback){
     for(j = 0; j < userScreennamesLength; j++){
       if(weiboUsers[j].screen_name == comments[i].user.screen_name){
         weiboUsers[j].count++;
-        weiboUsers[j].commentsArray.push(comments[i].text);
+        var created_at = new Date(comments[i].created_at);
+        var comment = new commentSchema(null, null, comments[i].text, created_at);
+        weiboUsers[j].commentsArray.push(comment);
         break;
       }
     }
     if(j == userScreennamesLength){
+      // 新出现的闺蜜
       var weiboUser = require('./weiboUser');
-      var commentSchema = require('./commentSchema');
-      var commentsArr = [comments[i].text];
+      var created_at = new Date(comments[i].created_at);
+      var comment = new commentSchema(null, null, comments[i].text, created_at);
+      var commentsArr = [comment];
       var wu = new weiboUser(comments[i].user.screen_name, comments[i].user.id, 1, commentsArr);
       weiboUsers.push(wu);
     }
@@ -254,7 +261,7 @@ function pushWeiboUsers(data, index, totalStatusNumber, callback){
   };
 
 }
-
+// 根据评论的ID 获取所有评论内容
 function getComments_show(weiboid, index, totalStatusNumber, callback, callback2){
   var requrl = '/comments/show.json?id=' + weiboid;
   getWeiboMethod( requrl, function(error, response) {
@@ -280,12 +287,9 @@ function getComments_show(weiboid, index, totalStatusNumber, callback, callback2
   });
 }
 
-
-
-
-// getWeiboByScreenName('囡囡思是女子');
-
 getAtPerson(targetUID);
+
+
 
 
 
