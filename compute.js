@@ -1,13 +1,12 @@
 var multiparter = require("multiparter");
 var https = require('https');
 var utils = require('./utils');
-var commentModel = require('./commentModel');
-require(__dirname+'/'+'userSchema');
-require(__dirname+'/'+'GuimiSchema');
-require(__dirname+'/'+'CommentSchema');
+require(__dirname+'/model/'+'userSchema');
+require(__dirname+'/model/'+'GuimiSchema');
+require(__dirname+'/model/'+'CommentSchema');
 
 var mongoose = require('mongoose');
-var dblocation =  'mongodb://localhost/peepweibo_1';
+var dblocation =  'mongodb://localhost/peepweibo_2';
 var targetUID = 1804832854;
 // var targetUID = 1769461117;
 // var targetUID = 1304252912; // vivi cola
@@ -136,7 +135,7 @@ GuimiSchema.find({ 'targetUser.id' : targetUID }, function(err, guimis){
 
 
 
-if(0)
+// if(0)
 // weiboText -> statuses[i].id -> comments -> guimiCount -> guimiWeiboText -> comments
 getUserTimelineById(targetUID, 5, function(data1){
   var statuses = data1.statuses;
@@ -214,7 +213,6 @@ getUserTimelineById(targetUID, 5, function(data1){
 
 function sendFinishSignal(){
   utils.BubbleSort(weiboUsers);
-
   for(var i  = 0; i < weiboUsers.length && i < 3 ;  i++){
     // var guimi = weiboUsers[i];
     // guimi.save(function(err){
@@ -231,7 +229,6 @@ function sendFinishSignal(){
     //   if(user){
     //   }
     // });
-
   }
 }
 

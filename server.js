@@ -1,40 +1,26 @@
-/* Main application entry file. Please note, the order of loading is important.
- * Configuration loading and booting of controllers and custom error handlers */
+var http = require("http");
+var url = require("url");
 
-var express = require('express')
-  , fs = require('fs')
-  , passport = require('passport')
+http.createServer(function(request , response){
+	var pathname = url.parse(request.url).pathname;
+	console.log("pathname = " + pathname);
 
-require('express-namespace')
+	var postdata = '';
+	request.setEncoding("utf8");
+	request.addListener('data' , function (chunk){
+		console.log("chunk = " + chunk);
 
-// Load configurations
-// var env = process.env.NODE_ENV || 'development' 
-  // , config = require('./config/config')[env]
-  // , auth = require('./authorization')
+		console.log(JSON.parse(chunk).targetUID);
+		postdata += chunk;
+	});
 
-// Bootstrap db connection
-var mongoose = require('mongoose')
-  , Schema = mongoose.Schema
-  
-// mongoose.connect(config.db)
+	request.addListener('end' , function (){
+	});
 
-// Bootstrap models
-var models_path = __dirname + '/app/models'
-  , model_files = fs.readdirSync(models_path);
-model_files.forEach(function (file) {
-  // require(models_path+'/'+file) ; 
-}) ; 
+	response.writeHead(200, {"Content-type" : "text/json"});
+	response.write(JSON.stringify({isAlive : true}));
+	// response.end();
+	
+}).listen(8888);
 
-// bootstrap passport config
-// require('./config/passport').boot(passport, config)
-
-var app = express()                                       // express app
-// require('./settings').boot(app, config, passport)         // Bootstrap application settings
-
-// Bootstrap routes
-// require('./config/routes')(app, passport, auth)
-
-// Start the app by listening on <port>
-var port = process.env.PORT || 3000
-app.listen(port)
-console.log('Express app started on port '+port)
+console.log("server started");
