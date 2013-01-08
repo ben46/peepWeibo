@@ -1,24 +1,25 @@
 var multiparter = require("multiparter");
 var https = require('https');
-var weiboUser = require('./weiboUser');
 var utils = require('./utils');
 var commentModel = require('./commentModel');
 require(__dirname+'/'+'userSchema');
 require(__dirname+'/'+'GuimiSchema');
+require(__dirname+'/'+'CommentSchema');
 
 var mongoose = require('mongoose');
-var dblocation =  'mongodb://localhost/peepweibo';
+var dblocation =  'mongodb://localhost/peepweibo_1';
 var targetUID = 1804832854;
 // var targetUID = 1769461117;
 // var targetUID = 1304252912; // vivi cola
 // var targetUID = 1304253723 // xiaotianxin
-// var access_token='2.00fEivnB87waEE37a37fc7ea0JsOjD' ; 
-var access_token = '2.00fEivnB0VIwKyd80a7ee6cb0Vk1av';
+var access_token='2.00fEivnB87waEE37a37fc7ea0JsOjD' ; 
+// var access_token = '2.00fEivnB0VIwKyd80a7ee6cb0Vk1av';
 var weiboUsers = [];
 var targetUser;
 mongoose.connect(dblocation);
 UserSchema = mongoose.model('UserSchema');
 GuimiSchema = mongoose.model('GuimiSchema');
+CommentSchema = mongoose.model('CommentSchema');
 
 function getWeiboMethod(requrl , callback){
   var https = require('https');
@@ -32,95 +33,12 @@ function getWeiboMethod(requrl , callback){
   requestWeibo.send(callback);
 }
 
-function searchTheirConversation(data, guimiUID, callback){
-  console.log('---------------------searchTheirConversation ' + guimiUID);
-  var theriConver = [];
-
-  var comments = data.comments;
-  for(var i = 0; i < comments.length; i++){
-    // console.log(comments[i].user.screen_name + "    "+  comments[i].text   + '----'+  targetScreenName);
-    // console.log(targetScreenName);
-    if(comments[i].text.search(targetScreenName) != -1){
-      // 闺蜜回复的
-      console.log(comments[i].user.screen_name + comments[i].text);
-    }
-
-    if(targetScreenName == comments[i].user.screen_name) {
-      console.log(comments[i].user.screen_name + comments[i].text);
-    }
-  }
-
-}
-
-function getTheirConversation(guimiUID, callback){
-  console.log('getTheirConversation');
-  var requrl = '/statuses/user_timeline/ids.json?uid=' + guimiUID + '&count=10';
-  getWeiboMethod( requrl, function(error, response) {
-      if (error) {
-        console.log('requestWeibo', error);
-        return;
-      }
-      response.setEncoding('utf8');
-      var chunkData = '';
-      response.on('data', function (chunk) {
-          chunkData+=chunk;
-      });
-      response.on('end', function () {
-        console.log('end');
-        // console.log('BODY: ' + chunk);
-        var data = JSON.parse(chunkData);
-        var statuses = data.statuses;
-        for(var i  = 0 ; i < statuses.length ;  i++){
-          getComments_show(statuses[i], null, null, searchTheirConversation, guimiUID);
-        }
-      });
-  });
-}
-
-function printActivePerson(){
-  console.log('finish');
-  utils.BubbleSort(weiboUsers);
-
-  user = new UserSchema({
-    screen_name: targetScreenName
-    , uid: targetUID
-    , guimiUids : weiboUsers
-  })
-  user.save();
-
-  // UserSchema.findOneAndUpdate(
-  //   {uid:targetUID}
-  //   ,{ 
-  //     screen_name: targetScreenName
-  //     , guimiUids : weiboUsers 
-  //   }
-  //   , null
-  //   , function(err , user){
-  //     console.log(user.uid);
-  //     console.log(user.screen_name);
-  //     console.log(user.guimiUids[0].screen_name);
-  //     console.log(user.guimiUids[0].count);
-  // })
-
-  return;
-
-
-  for(var j  = 1 ; j < weiboUsers.length && j < 4 ;  j++){
-    console.log(weiboUsers[j].screen_name + ", " + weiboUsers[j].count);
-    for(var i  = 0 ; i < weiboUsers[j].commentsArray.length ;  i++){
-      console.log('    ' + weiboUsers[j].commentsArray[i].screen_name + ':' + weiboUsers[j].commentsArray[i].commentText + '  ' + utils.formateDate(weiboUsers[j].commentsArray[i].created_at  ) );
-    }
-    // getTheirConversation(weiboUsers[j].uid);
-  }
-}
-
-
 // 处理一条微博的所有评论数据
 // 把这些数据全部放进博主的comments array
 function pushDataIntoWeiboUsers(data, weiboContent, callback){
   var comments = data.comments;
   for(var i = 0; i < comments.length; i++){
-    var created_at = new Date(comments[i].created_at);
+    // var created_at = new Date(comments[i].created_at);
     var comment = new CommentSchema({
       targetUser : targetUser
       , user : comments[i].user
@@ -129,19 +47,26 @@ function pushDataIntoWeiboUsers(data, weiboContent, callback){
       , weiboText : weiboContent.text
       , id : comments[i].id
       , text: comments[i].text
+      , weibo: weiboContent
     });
     var j;    
     for(j = 0; j < weiboUsers.length; j++){
-      if(weiboUsers[j].screen_name == comments[i].user.screen_name || (comments[i].user.id == targetUID 
-        && comments[i].text.search(weiboUsers[j].screen_name) != -1)){
+      if(weiboUsers[j].user.screen_name == comments[i].user.screen_name 
+        || (comments[i].user.id == targetUser.id && comments[i].text.search(weiboUsers[j].user.screen_name) != -1)){
         weiboUsers[j].count++;
-        weiboUsers[j].commentsArray.push(comment);
+        weiboUsers[j].comments.push(comment);
         break;
       }
     }
     if(j == weiboUsers.length && comments[i].user.id != targetUID){
       // 新出现的闺蜜
-      var wu = new weiboUser(comments[i].user, 1, [comment]);
+      // var wu = new weiboUser(comments[i].user, 1, [comment]);
+      var wu = new GuimiSchema({
+        targetUser : targetUser
+        , user: comments[i].user
+        , comments: [comment]
+        , count : 1
+      });
       weiboUsers.push(wu);
     }
   }
@@ -149,7 +74,7 @@ function pushDataIntoWeiboUsers(data, weiboContent, callback){
 }
 
 // 根据评论的ID 获取所有评论内容
-function getComments_show(weiboid, callback){
+function getComments_show(weiboid, options, callback){
   var requrl = '/comments/show.json?id=' + weiboid;
   getWeiboMethod( requrl, function(error, response) {
       if (error) {
@@ -163,15 +88,15 @@ function getComments_show(weiboid, callback){
       });
       response.on('end', function () {
         var data = JSON.parse(chunkData);
-        callback(data);
+        callback(data, options);
       });
   });
 }
 
 
 
-function getUserTimelineById(uid, count, callback){
-  count = (count < 10 ? 10 : count);
+function getUserTimelineById(uid, count, callback, options){
+  count = (count < 1 ? 1 : count);
   var reqUrl = '/statuses/user_timeline.json?uid=' + uid + '&count=' + count;
   getWeiboMethod( reqUrl, function(error, response) {
       if (error) {
@@ -185,98 +110,128 @@ function getUserTimelineById(uid, count, callback){
       });
       response.on('end', function () {
         console.log('end');
+        // console.log(chunkData);
         var data = JSON.parse(chunkData);
-        callback(data);
+        callback(data, options);
       });
   });
 }
 
-// weiboText -> statuses[i].id -> comments -> guimiCount -> guimiWeiboText -> comments
-getUserTimelineById(targetUID, 10, function(data1){
-  var statuses = data1.statuses;
-  targetUser = statuses[0].user;
-  for(var i  = 0 ; i < statuses.length ;  i++){
-    // console.log(statuses[i].id);
-    // console.log(statuses[i].created_at);
-    // console.log(statuses[i].text);
-    // console.log(statuses[i].user.screen_name);
-    // console.log(statuses[i].user.uid);
-    getComments_show(statuses[i].id, function(data2){
-      pushDataIntoWeiboUsers(data2, {id: statuses[i].id, text: statuses[i].text}, function(){
-        if(i == statuses.length - 1){
-          // ...
-          utils.BubbleSort(weiboUsers);
-          for(var j  = 0; j < weiboUsers.length && j < 10;  j++){
-            // according to these 10 weibo users uid
-            // ->>>get their weibo 
-            getUserTimelineById(weiboUsers[j].user.uid, 10, function(data3){
-              // get comments
-              for(var k  = 0; k < data3.statuses.length;  k++){
-                getComments_show(data3.statuses[k].id, function(data4){
-                  for(var l  = 0; l < data4.comments.length;  l++){
-                    if(data4.comments[l].user.id == targetUser.uid 
-                      || data4.text.search(targetUser.screen_name) != -1){
-                      // 是否是target回复的 // 是否是回复target的
-                      var comment = new CommentSchema({
-                        targetUser : targetUser
-                        , user : weiboUsers[j].user
-                        , created_at : data4.comments[l].created_at
-                        , weiboId : data3.statuses[k].id
-                        , weiboText : data3.statuses[k].text
-                        , id : data4.comments[l].id
-                        , text: data4.comments[l].text
-                      });
-                      weiboUsers[j].comments.push(comment);
-                    }
-                  }
-                }
-              }
-            });
-          }
-        }
-      })
-    });
+
+
+
+// if(0)
+GuimiSchema.find({ 'targetUser.id' : targetUID }, function(err, guimis){
+  if (err) {
+    console.log('err : ' + err);
+  };
+  if(guimis){
+    for(var i  = 0; i < guimis.length;  i++){
+      console.log(guimis[i].user.screen_name);
+      console.log(guimis[i].count);
+    }
   }
 });
 
 
-// getGuimiByTargetUid(targetUID);
-function getGuimiByTargetUid(uid){
-  UserSchema.findOne({uid:uid}, function (err, user) {
-      console.log(user.uid);
-      console.log(user.screen_name);
-      var guimiUids = user.guimiUids;
-
-      // guimiUser = new GuimiSchema({
-      //   screen_name: guimiUids[1].screen_name
-      //   , uid: guimiUids[1].uid
-      //   , comments : null
-      // })
-      // guimiUser.save(function(err, ll){
-      //   console.log(ll.screen_name)
-      // });
-
-      // getTheirConversation(guimiUids[0].uid);
-      // GuimiSchema.findOne({uid : guimiUids[0]},function(err , lol){
-      //   console.log(lol.targetUid);
-      //   console.log('ff')
-      // })
-      // return
 
 
-      GuimiSchema.findOneAndUpdate(
-        {uid:guimiUids[0].uid}
-        ,
-        {$set:
-          {targetUid : user.uid
-          ,targetScreenName:user.screen_name}
-        },
-      function(err , lol){
-        console.log(JSON.stringify(lol));
-      })
+if(0)
+// weiboText -> statuses[i].id -> comments -> guimiCount -> guimiWeiboText -> comments
+getUserTimelineById(targetUID, 5, function(data1){
+  var statuses = data1.statuses;
+  targetUser = statuses[0].user;
+  // console.log(targetUser);
+
+  for(var i  = 0 ; i < statuses.length ;  i++){
+    var calledCount = 0;
+    getComments_show(statuses[i].id, i, function(data2, options){
+        pushDataIntoWeiboUsers(data2, statuses[options], function(){
+          calledCount++
+          console.log(calledCount + ',    ' + options);
+          if(calledCount == statuses.length){
+            utils.BubbleSort(weiboUsers);
+
+            // for(var j  = 0; j < weiboUsers.length && j < 10;  j++){
+            //   console.log(weiboUsers[j].user.screen_name);
+            //   console.log(weiboUsers[j].count);
+            // }
 
 
-  })
+            var calledCount2 = 0;
+            for(var j  = 0; j < weiboUsers.length && j < 3 ;  j++){
+      //         // according to these 10 weibo users uid
+      //         // ->>>get their weibo 
+              getUserTimelineById(weiboUsers[j].user.id, 5, function(data3, options_1){
+                // console.log(data3.statuses[0]);
+                // get comments
+                for(var k  = 0; k < data3.statuses.length;  k++){
+                  getComments_show(data3.statuses[k].id
+                    , data3.statuses[k]
+                    , function(data4, options_2){
+                      for(var l  = 0; l < data4.comments.length;  l++){
+                        if(data4.comments[l].user.id == targetUser.id 
+                          || data4.comments[l].text.search(targetUser.screen_name) != -1){
+                          // 是否是target回复的 
+                          // 是否是回复target的
+                          var comment = new CommentSchema({
+                            targetUser : targetUser
+                            , user : data4.comments[l].user
+                            , created_at : data4.comments[l].created_at
+                            , weiboId : options_2.id
+                            , weiboText : options_2.text
+                            , weibo: options_2
+                            , id : data4.comments[l].id
+                            , text: data4.comments[l].text
+                          });
+                          // console.log(weiboUsers[options_1].user.screen_name + comment.weiboText);
+                          // console.log(comment.user.screen_name + comment.text);
+                          // console.log(options_2.user.screen_name);
+                          weiboUsers[options_1].comments.push(comment);
+                          weiboUsers[options_1].count++;
+
+                          // console.log('push');
+                        }// if
+                      }// for
+                      calledCount2++;
+
+                      if(j*k == calledCount2){
+                        // console.log(j+'_'+'_'+k+'_'+calledCount2);
+                        sendFinishSignal();
+                      }
+                    }); // getcomments_show
+                } // for
+              }, j);
+              // break;
+            }
+          } // if(calledCount == statuses.length - 1 && 0){
+        }) // pushDataIntoWeiboUsers
+      // } // if(i<statuses.length){
+    });// getComments_show
+    // break;
+  }
+});
+
+function sendFinishSignal(){
+  utils.BubbleSort(weiboUsers);
+
+  for(var i  = 0; i < weiboUsers.length && i < 3 ;  i++){
+    // var guimi = weiboUsers[i];
+    // guimi.save(function(err){
+    //   if (err) {
+    //     console.log(err)
+    //   }else{
+    //     console.log('saved')
+    //   }
+    // });
+    // GuimiSchema.findOne({ targetUser.id : targetUID }, function(err, user){
+    //   if (err) {
+    //     console.log('err : ' + err);
+    //   };
+    //   if(user){
+    //   }
+    // });
+
+  }
 }
-
 

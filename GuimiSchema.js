@@ -2,11 +2,10 @@ var mongoose = require('mongoose')
   , Schema = mongoose.Schema
 
 var GuimiSchema = new Schema({
-	targetUid : Number
-	,targetScreenName : String
-    , screen_name: String 
-    , uid: Number
+	targetUser : Object
+    , user: Object 
     , comments: []
+    , count : Number
 });
 
 exports.GuimiSchema = mongoose.model('GuimiSchema', GuimiSchema);

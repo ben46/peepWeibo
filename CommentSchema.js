@@ -8,6 +8,9 @@ var CommentSchema = new Schema({
     , created_at: Date
     , id : Number
     , text: String
+    , weibo: Object
+    , weiboId : Number
+    , weiboText : String
 });
 
 exports.CommentSchema = mongoose.model('CommentSchema', CommentSchema);
