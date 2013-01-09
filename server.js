@@ -1,26 +1,26 @@
-var http = require("http");
-var url = require("url");
+var http = require('http');
+var express = require('express')
+var app = express()
 
-http.createServer(function(request , response){
-	var pathname = url.parse(request.url).pathname;
-	console.log("pathname = " + pathname);
+app.get('/', function(req , res){
+    res.end('/root');
+});
 
-	var postdata = '';
-	request.setEncoding("utf8");
-	request.addListener('data' , function (chunk){
-		console.log("chunk = " + chunk);
+app.get('/articles/:id', function(req, res){
+    console.log('call back');
+})
 
-		console.log(JSON.parse(chunk).targetUID);
-		postdata += chunk;
-	});
+app.param('id', function(req, res, next, id){
+    console.log(id);
+});
 
-	request.addListener('end' , function (){
-	});
+app.post('/users', function(req, res){
+    console.log('jfdkj');
+    res.end();
+});
 
-	response.writeHead(200, {"Content-type" : "text/json"});
-	response.write(JSON.stringify({isAlive : true}));
-	// response.end();
-	
-}).listen(8888);
+var port = process.env.PORT || 3000
+app.listen(port)
+console.log('Express app started on port '+port)
 
-console.log("server started");
+
