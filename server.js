@@ -1,22 +1,37 @@
 var http = require('http');
-var express = require('express')
+var express = require('express');
+var compute = require('./compute');
 var app = express()
 
 app.get('/', function(req , res){
     res.end('/root');
 });
 
-app.get('/articles/:id', function(req, res){
+app.get('/uid/:id', function(req, res){
     console.log('call back');
+    // res.end();
 })
 
 app.param('id', function(req, res, next, id){
     console.log(id);
+
+    // var user = {uid : 123, screen_name: 'hello i am 123'};
+    // var data = [user];
+    // var resData = JSON.stringify({array: data});
+    // res.end(resData);
+
+
+    // if(0)
+    compute.computeData(id, function(data){
+        // var resData = JSON.stringify({array: data});
+        res.end(data);
+    });
+
 });
 
-app.post('/users', function(req, res){
+app.post('/test', function(req, res){
     console.log('jfdkj');
-    res.end();
+    res.end('test');
 });
 
 var port = process.env.PORT || 3000

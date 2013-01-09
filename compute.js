@@ -6,7 +6,9 @@ require(__dirname+'/model/'+'GuimiSchema');
 require(__dirname+'/model/'+'CommentSchema');
 
 var mongoose = require('mongoose');
-var dblocation =  'mongodb://localhost/peepweibo_2';
+var Schema = mongoose.Schema;
+
+var dblocation =  'mongodb://localhost/peepweibo_1';
 var targetUID = 1804832854;
 // var targetUID = 1769461117;
 // var targetUID = 1304252912; // vivi cola
@@ -120,23 +122,37 @@ function getUserTimelineById(uid, count, callback, options){
 
 
 // if(0)
-GuimiSchema.find({ 'targetUser.id' : targetUID }, function(err, guimis){
+// weiboText -> statuses[i].id -> comments -> guimiCount -> guimiWeiboText -> comments
+
+exports.computeData = function(uid, callback){
+
+targetUID = uid;
+
+var saveSchema = new Schema({
+    uid : Number
+    , screen_name : String
+    , array : []
+  });
+mongoose.model('saveSchema', saveSchema)
+save = mongoose.model('saveSchema');
+save.findOne({uid : uid} , function(err, user){
   if (err) {
-    console.log('err : ' + err);
-  };
-  if(guimis){
-    for(var i  = 0; i < guimis.length;  i++){
-      console.log(guimis[i].user.screen_name);
-      console.log(guimis[i].count);
-    }
+    var _schema = new save({
+      uid : targetUID
+      , screen_name : 'i am screen_name'
+      , array : []
+    });
+    _schema.save();
   }
+  if (user) {
+    return callback(user);
+  };
 });
 
 
 
+return callback(user);
 
-// if(0)
-// weiboText -> statuses[i].id -> comments -> guimiCount -> guimiWeiboText -> comments
 getUserTimelineById(targetUID, 5, function(data1){
   var statuses = data1.statuses;
   targetUser = statuses[0].user;
@@ -196,7 +212,21 @@ getUserTimelineById(targetUID, 5, function(data1){
 
                       if(j*k == calledCount2){
                         // console.log(j+'_'+'_'+k+'_'+calledCount2);
-                        sendFinishSignal();
+                        // sendFinishSignal();
+                        callback(weiboUsers);
+
+                        var saveSchema = new Schema({
+                          uid : Number
+                          , screen_name : String
+                          , array : []
+                        });
+                        var _schema = new saveSchema({
+                          uid : targetUser.uid
+                          , screen_name : targetUser.screen_name
+                          , array : weiboUsers
+                        });
+                        _schema.save();
+
                       }
                     }); // getcomments_show
                 } // for
@@ -210,6 +240,7 @@ getUserTimelineById(targetUID, 5, function(data1){
     // break;
   }
 });
+}
 
 function sendFinishSignal(){
   utils.BubbleSort(weiboUsers);
