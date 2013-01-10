@@ -9,9 +9,9 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
 var dblocation =  'mongodb://localhost/peepweibo_1';
-var targetUID = 1804832854;
+// var targetUID = 1804832854;
 // var targetUID = 1769461117;
-// var targetUID = 1304252912; // vivi cola
+var targetUID = 1304252912; // vivi cola
 // var targetUID = 1304253723 // xiaotianxin
 var access_token='2.00fEivnB87waEE37a37fc7ea0JsOjD' ; 
 // var access_token = '2.00fEivnB0VIwKyd80a7ee6cb0Vk1av';
@@ -118,42 +118,68 @@ function getUserTimelineById(uid, count, callback, options){
   });
 }
 
-
-
-
-// if(0)
-// weiboText -> statuses[i].id -> comments -> guimiCount -> guimiWeiboText -> comments
-
-exports.computeData = function(uid, callback){
-
-targetUID = uid;
-
 var saveSchema = new Schema({
     uid : Number
     , screen_name : String
     , array : []
-  });
-mongoose.model('saveSchema', saveSchema)
-save = mongoose.model('saveSchema');
-save.findOne({uid : uid} , function(err, user){
-  if (err) {
-    var _schema = new save({
-      uid : targetUID
-      , screen_name : 'i am screen_name'
-      , array : []
-    });
-    _schema.save();
-  }
-  if (user) {
-    return callback(user);
-  };
 });
 
+mongoose.model('saveSchema', saveSchema);
+save = mongoose.model('saveSchema');
+
+ // var _schema = new save({
+  //   uid : targetUID
+  //   , screen_name : 'i am screen_name'
+  //   , array : []
+  // });
+  // _schema.save();
+
+  // save.findOne({uid : uid} , function(err, user){
+  //   if (err) {
+  //     var _schema = new save({
+  //       uid : targetUID
+  //       , screen_name : 'i am screen_name'
+  //       , array : []
+  //     });
+  //     _schema.save();
+  //   }
+  //   if (user) {
+  //     return callback(user);
+  //   };
+  // });
 
 
-return callback(user);
+// weiboText -> statuses[i].id -> comments -> guimiCount -> guimiWeiboText -> comments
+
+exports.computeData = function(uid, callback){
+  targetUID = uid;
+  save.findOne({uid : uid} , function(err, user){
+    if (user) {
+      callback(user);
+    }else{
+
+  
+      buzhidaoqushenmemingzi(targetUID, function (userArray) {
+          var _schema = new save({
+             uid : targetUser.uid
+            , screen_name : targetUser.screen_name
+            , array : userArray
+          });
+          _schema.save(function(){
+            callback(_schema);
+          });
+      })
+    }
+  })
+}
+
+
+
+
+function buzhidaoqushenmemingzi (uid, callback) {
 
 getUserTimelineById(targetUID, 5, function(data1){
+
   var statuses = data1.statuses;
   targetUser = statuses[0].user;
   // console.log(targetUser);
@@ -209,23 +235,11 @@ getUserTimelineById(targetUID, 5, function(data1){
                         }// if
                       }// for
                       calledCount2++;
+                      console.log(j+'_'+k+'_'+calledCount2);
 
                       if(j*k == calledCount2){
-                        // console.log(j+'_'+'_'+k+'_'+calledCount2);
                         // sendFinishSignal();
                         callback(weiboUsers);
-
-                        var saveSchema = new Schema({
-                          uid : Number
-                          , screen_name : String
-                          , array : []
-                        });
-                        var _schema = new saveSchema({
-                          uid : targetUser.uid
-                          , screen_name : targetUser.screen_name
-                          , array : weiboUsers
-                        });
-                        _schema.save();
 
                       }
                     }); // getcomments_show
@@ -240,26 +254,16 @@ getUserTimelineById(targetUID, 5, function(data1){
     // break;
   }
 });
+
+
+
 }
 
-function sendFinishSignal(){
-  utils.BubbleSort(weiboUsers);
-  for(var i  = 0; i < weiboUsers.length && i < 3 ;  i++){
-    // var guimi = weiboUsers[i];
-    // guimi.save(function(err){
-    //   if (err) {
-    //     console.log(err)
-    //   }else{
-    //     console.log('saved')
-    //   }
-    // });
-    // GuimiSchema.findOne({ targetUser.id : targetUID }, function(err, user){
-    //   if (err) {
-    //     console.log('err : ' + err);
-    //   };
-    //   if(user){
-    //   }
-    // });
-  }
-}
+
+
+
+
+
+
+
 

@@ -24,7 +24,15 @@ app.param('id', function(req, res, next, id){
     // if(0)
     compute.computeData(id, function(data){
         // var resData = JSON.stringify({array: data});
-        res.end(data);
+        if (data.error) {
+            console.log(data.error);
+            res.end(data.error);
+            return;
+        }
+
+        res.end(JSON.stringify(data));
+        // res.end(data.array);
+
     });
 
 });
