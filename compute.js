@@ -6,12 +6,9 @@ require(__dirname+'/model/'+'GuimiSchema');
 require(__dirname+'/model/'+'CommentSchema');
 
 var mongoose = require('mongoose');
-
 var Schema = mongoose.Schema;
 
 var dblocation =  'mongodb://localhost/peepweibo_1';
-
-
 // var targetUID = 1804832854;
 // var targetUID = 1769461117;
 var targetUID = 1304252912; // vivi cola
@@ -105,7 +102,6 @@ function getUserTimelineById(uid, count, callback, options){
   getWeiboMethod( reqUrl, function(error, response) {
       if (error) {
         console.log('requestWeibo', error);
-        callback(error, options);
         return;
       }
       response.setEncoding('utf8');
@@ -153,7 +149,6 @@ save = mongoose.model('saveSchema');
   // });
 
 
-
 // weiboText -> statuses[i].id -> comments -> guimiCount -> guimiWeiboText -> comments
 
 exports.computeData = function(uid, callback){
@@ -197,9 +192,7 @@ exports.computeData = function(uid, callback){
 
 
 
-
 function buzhidaoqushenmemingzi (uid, callback) {
-
 
 getUserTimelineById(targetUID, 5, function(data1){
 
@@ -261,11 +254,8 @@ getUserTimelineById(targetUID, 5, function(data1){
                       console.log(j+'_'+k+'_'+calledCount2);
 
                       if(j*k == calledCount2){
-
                         // sendFinishSignal();
                         callback(weiboUsers);
-
-
 
                       }
                     }); // getcomments_show
@@ -280,7 +270,6 @@ getUserTimelineById(targetUID, 5, function(data1){
     // break;
   }
 });
-}
 
 
 
