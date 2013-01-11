@@ -13,17 +13,14 @@ app.get('/uid/:id', function(req, res){
 })
 
 app.param('id', function(req, res, next, id){
-    console.log(id);
+    console.log('---' + id);
 
     // var user = {uid : 123, screen_name: 'hello i am 123'};
     // var data = [user];
     // var resData = JSON.stringify({array: data});
     // res.end(resData);
 
-
-    // if(0)
     compute.computeData(id, function(data){
-        // var resData = JSON.stringify({array: data});
         if (data.error) {
             console.log(data.error);
             res.end(data.error);

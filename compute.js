@@ -154,18 +154,34 @@ save = mongoose.model('saveSchema');
 exports.computeData = function(uid, callback){
   targetUID = uid;
   save.findOne({uid : uid} , function(err, user){
+
+
     if (user) {
+      console.log('user exists');
       callback(user);
     }else{
 
-  
+
+
+     // var _schema = new save({
+     //    uid : targetUID
+     //    , screen_name : 'i am screen_name'
+     //    , array : []
+     //  });
+     //  _schema.save();
+
+
+
+
+      // if(0)  
       buzhidaoqushenmemingzi(targetUID, function (userArray) {
           var _schema = new save({
-             uid : targetUser.uid
+             uid : targetUID
             , screen_name : targetUser.screen_name
             , array : userArray
           });
           _schema.save(function(){
+            console.log('user schema saved');
             callback(_schema);
           });
       })
