@@ -8,7 +8,7 @@ require(__dirname+'/model/'+'CommentSchema');
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
-var dblocation =  'mongodb://localhost/peepweibo_1';
+var dblocation =  'mongodb://localhost/peepweibo_2';
 // var targetUID = 1804832854;
 // var targetUID = 1769461117;
 var targetUID = 1304252912; // vivi cola
@@ -154,27 +154,14 @@ save = mongoose.model('saveSchema');
 exports.computeData = function(uid, callback){
   targetUID = uid;
   save.findOne({uid : uid} , function(err, user){
-
-
     if (user) {
       console.log('user exists');
       callback(user);
     }else{
-
-
-
-     // var _schema = new save({
-     //    uid : targetUID
-     //    , screen_name : 'i am screen_name'
-     //    , array : []
-     //  });
-     //  _schema.save();
-
-
-
-
-      // if(0)  
       buzhidaoqushenmemingzi(targetUID, function (userArray) {
+        if (userArray.error) {
+          return callback({error: 'invalid uesr'});
+        };
           var _schema = new save({
              uid : targetUID
             , screen_name : targetUser.screen_name
@@ -194,9 +181,13 @@ exports.computeData = function(uid, callback){
 
 function buzhidaoqushenmemingzi (uid, callback) {
 
-getUserTimelineById(targetUID, 5, function(data1){
+getUserTimelineById(targetUID, 30, function(data1){
 
   var statuses = data1.statuses;
+  if (statuses.length == 0) {
+    return callback({error: 'invalid uesr'});
+  };
+
   targetUser = statuses[0].user;
   // console.log(targetUser);
 
@@ -216,10 +207,10 @@ getUserTimelineById(targetUID, 5, function(data1){
 
 
             var calledCount2 = 0;
-            for(var j  = 0; j < weiboUsers.length && j < 3 ;  j++){
+            for(var j  = 0; j < weiboUsers.length && j < 5 ;  j++){
       //         // according to these 10 weibo users uid
       //         // ->>>get their weibo 
-              getUserTimelineById(weiboUsers[j].user.id, 5, function(data3, options_1){
+              getUserTimelineById(weiboUsers[j].user.id, 15, function(data3, options_1){
                 // console.log(data3.statuses[0]);
                 // get comments
                 for(var k  = 0; k < data3.statuses.length;  k++){
