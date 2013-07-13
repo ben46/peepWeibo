@@ -1,0 +1,27 @@
+{
+	"name": "第一个Chrome插件",
+	"manifest_version": 2,
+	"version": "0.1",
+	"options_page": "options.html",
+	"description": "我的第一个Chrome插件，还不错吧",
+
+	"browser_action": {
+		"default_icon": "img/icon19.png",
+		"default_title": "微博新控",
+		"default_popup": "popup.html"
+	},
+
+	"permissions": [
+        "notifications",
+        "tabs",
+        "http://*/*",
+        "https://*/*"
+    ],
+
+	"icons": {
+	    "16": "img/icon16.png",
+	    "48": "img/icon48.png",
+	    "128": "img/icon128.png"
+	}
+
+}
